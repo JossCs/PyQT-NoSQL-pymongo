@@ -14,7 +14,7 @@ futbolistas = [
     Futbolista('Iker','Casillas',33,'Portero',1,False),
     Futbolista('Carles','Puyol',36,'Central',2,False),
     Futbolista('Sergio','Ramos',28,'Lateral',1,False),
-    Futbolista('Andrés','Iniesta',30,'Centrocampista',1,False),
+    Futbolista('Andres','Iniesta',30,'Centrocampista',1,False),
     Futbolista('Fernando','Torres',30,'Delantero',2,False),
     Futbolista('Leo','Baptistao',22,'Delantero',2,False)
     ]
@@ -99,12 +99,12 @@ class Miformulario(QtGui.QDialog):
         QtGui.QWidget.__init__(self,parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
-        QtCore.QObject.connect(self.ui.agregar_button, QtCore.SIGNAL('clicked()'), self.mostrar)
+        QtCore.QObject.connect(self.ui.agregar_button, QtCore.SIGNAL('clicked()'), self.agregar)
+        QtCore.QObject.connect(self.ui.mostrar_button, QtCore.SIGNAL('clicked()'), self.mostrar)
 
 
     def mostrar(self):
         #text = self.ui.list_equipos.currentItem().text()  // agarra el text del item elejido de la lista
-        #self.ui.list_equipos.takeItem(self.ui.list_equipos.currentRow())
         global collection,equipos,consulta
 
         #cuando se elija un equipo del combo box, se hara la consulta con el nombre de ese equipo
@@ -121,11 +121,23 @@ class Miformulario(QtGui.QDialog):
         doc=equipos.aggregate(consulta)
         for f in doc:
              for fut in f["miembro"]:
-                  if(fut["convocado"] == False): # condicional que valida si el jugador fue convocado o no 
+                  if(fut["convocado"] == False): # condicional que valida si el jugador fue convocado o 
                       a= fut['nombre'] +" "+ fut['apellidos']+" - " + fut['tipo']+ " - edad " +str(fut['edad']) 
                       self.ui.list_equipos.addItem(a)
+                      
+    def agregar(self):
+        global collection,equipos
+        text = str(self.ui.list_equipos.currentItem().text())
+        posi= text.find(" - ")
+        jugador=text[0:posi]
+        print jugador
+        self.ui.list_equipos.takeItem(self.ui.list_equipos.currentRow())
         
         
+        
+        
+            
+            
 
     
 

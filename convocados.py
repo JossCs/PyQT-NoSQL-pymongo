@@ -62,7 +62,7 @@ class Ui_Dialog(object):
         self.label.setFont(font)
         self.label.setObjectName(_fromUtf8("label"))
         self.agregar_button = QtGui.QPushButton(self.tab_2)
-        self.agregar_button.setGeometry(QtCore.QRect(10, 290, 151, 91))
+        self.agregar_button.setGeometry(QtCore.QRect(30, 320, 141, 81))
         font = QtGui.QFont()
         font.setPointSize(17)
         self.agregar_button.setFont(font)
@@ -70,6 +70,12 @@ class Ui_Dialog(object):
         self.list_equipos = QtGui.QListWidget(self.tab_2)
         self.list_equipos.setGeometry(QtCore.QRect(200, 70, 411, 371))
         self.list_equipos.setObjectName(_fromUtf8("list_equipos"))
+        self.mostrar_button = QtGui.QPushButton(self.tab_2)
+        self.mostrar_button.setGeometry(QtCore.QRect(30, 220, 141, 81))
+        font = QtGui.QFont()
+        font.setPointSize(17)
+        self.mostrar_button.setFont(font)
+        self.mostrar_button.setObjectName(_fromUtf8("mostrar_button"))
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
         self.verticalLayout.addWidget(self.tabWidget)
 
@@ -89,5 +95,6 @@ class Ui_Dialog(object):
         self.Equipos_Cbox.setItemText(4, _translate("Dialog", "Universitario", None))
         self.label.setText(_translate("Dialog", "Al seleccionar el equipo,te saldra la lista de jugadores disponibles para convocar", None))
         self.agregar_button.setText(_translate("Dialog", "Agregar", None))
+        self.mostrar_button.setText(_translate("Dialog", "Mostrar", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Dialog", "Equipos", None))
 
