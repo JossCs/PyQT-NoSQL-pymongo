@@ -2,26 +2,28 @@
 
 class Futbolista:
 
-    def __init__(self,nombre, apellidos, edad, demarcacion, equipo):
+    def __init__(self,nombre, apellidos, edad, tipo, equipo,convocado):
         self.nombre = nombre
         self.apellidos = apellidos
         self.edad = edad
-        self.demarcacion = demarcacion
+        self.tipo = tipo
         self.equipo=equipo
+        self.convocado=convocado
 
     def toDBCollection (self):
         jugador = {
             "nombre":self.nombre,
             "apellidos":self.apellidos,
             "edad": self.edad,
-            "demarcacion":self.demarcacion,
-            "internacional":self.equipo
+            "tipo":self.tipo,
+            "equipo":self.equipo,
+            "convocado":self.convocado
         }
         return jugador
 
     def __str__(self):
-        return "Nombre: %s - Apellidos: %s - Edad: %i - Demarcación: %s - Internacional: %r" \
-               %(self.nombre, self.apellidos, self.edad, self.demarcacion, self.equipo)
+        return "Nombre: %s - Apellidos: %s - Edad: %i - tipo: %s - equipo: %r" \
+               %(self.nombre, self.apellidos, self.edad, self.tipo, self.equipo)
 
 
 
@@ -37,8 +39,4 @@ class equipo:
             "nombre":self.nombre,
         }
         return Equipo
-
-    def __str__(self):
-        return "Nombre: %s - Apellidos: %s - Edad: %i - Demarcación: %s - Internacional: %r" \
-               %(self.nombre, self.apellidos, self.edad, self.demarcacion, self.internacional)
 

@@ -11,18 +11,18 @@ from Futbolista import equipo
 
 # Creo una lista de objetos futbolista a insertar en la BD
 futbolistas = [
-    Futbolista('Iker','Casillas',33,'Portero',1),
-    Futbolista('Carles','Puyol',36,'Central',2),
-    Futbolista('Sergio','Ramos',28,'Lateral',1),
-    Futbolista('Andrés','Iniesta',30,'Centrocampista',1),
-    Futbolista('Fernando','Torres',30,'Delantero',2),
-    Futbolista('Leo','Baptistao',22,'Delantero',2)
+    Futbolista('Iker','Casillas',33,'Portero',1,False),
+    Futbolista('Carles','Puyol',36,'Central',2,False),
+    Futbolista('Sergio','Ramos',28,'Lateral',1,False),
+    Futbolista('Andrés','Iniesta',30,'Centrocampista',1,False),
+    Futbolista('Fernando','Torres',30,'Delantero',2,False),
+    Futbolista('Leo','Baptistao',22,'Delantero',2,False)
     ]
 
 
 Equipos =[
-    equipo(1,'river'),
-    equipo(2,'barcelona')
+    equipo(1,'River'),
+    equipo(2,'Barcelona')
 
     ]
 # PASO 1: Conexión al Server de MongoDB Pasandole el host y el puerto
@@ -57,17 +57,16 @@ for equ in Equipos:
 
 # PASO 4.2.1: "READ" -> Leemos todos los documentos de la base de datos
 cursor = collection.find()
-print cursor
 for fut in cursor:
     print "%s - %s - %i - %s - %r" \
-         %(fut['nombre'], fut['apellidos'], fut['edad'], fut['demarcacion'], fut['internacional'])
+         %(fut['nombre'], fut['apellidos'], fut['edad'], fut['tipo'], fut['equipo'])
 
 
 global consulta
 consulta=[{'$lookup':{
     'from':'Futbolistas',
     'localField': '_id',
-    'foreignField' : 'internacional',
+    'foreignField' : 'equipo',
     'as': 'miembro'}},
         {'$match':
          {'nombre':'river'}}]
@@ -78,7 +77,7 @@ print " jugadores de river"
 for f in doc:
     for fut in f["miembro"]:
          print "%s - %s - %i - %s " \
-         %(fut['nombre'], fut['apellidos'], fut['edad'], fut['demarcacion'])
+         %(fut['nombre'], fut['apellidos'], fut['edad'], fut['tipo'])
 
          a= fut['nombre'] +" "+ fut['apellidos']
          print a
@@ -100,29 +99,33 @@ class Miformulario(QtGui.QDialog):
         QtGui.QWidget.__init__(self,parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
-        self.ui.list_equipos.addItem("tu mama")
-        QtCore.QObject.connect(self.ui.agregar_button, QtCore.SIGNAL('clicked()'), self.agregar)
+        QtCore.QObject.connect(self.ui.agregar_button, QtCore.SIGNAL('clicked()'), self.mostrar)
 
 
-    def agregar(self):
-        text = self.ui.list_equipos.currentItem().text()
+    def mostrar(self):
+        #text = self.ui.list_equipos.currentItem().text()  // agarra el text del item elejido de la lista
         #self.ui.list_equipos.takeItem(self.ui.list_equipos.currentRow())
-        self.ui.list_convocados.addItem(text)
-        print text
         global collection,equipos,consulta
-#se hace la consulta para 
+
+        #cuando se elija un equipo del combo box, se hara la consulta con el nombre de ese equipo
+        equipo_select=self.ui.Equipos_Cbox.currentText()
+        consulta=[{'$lookup':{
+            'from':'Futbolistas',
+            'localField': '_id',
+            'foreignField' : 'equipo',
+            'as': 'miembro'}},
+                {'$match':
+                 {'nombre':str(equipo_select)}}] 
+        
+#Recorremos todo el json d
         doc=equipos.aggregate(consulta)
         for f in doc:
              for fut in f["miembro"]:
-                 print "%s - %s - %i - %s " \
-                 %(fut['nombre'], fut['apellidos'], fut['edad'], fut['demarcacion'])
-
-                 a= fut['nombre'] +" "+ fut['apellidos']
-                 self.ui.list_convocados.addItem(a)
-    
-            
+                  if(fut["convocado"] == False): # condicional que valida si el jugador fue convocado o no 
+                      a= fut['nombre'] +" "+ fut['apellidos']+" - " + fut['tipo']+ " - edad " +str(fut['edad']) 
+                      self.ui.list_equipos.addItem(a)
         
-
+        
 
     
 
