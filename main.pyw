@@ -6,8 +6,7 @@ from convocados import *
 
 
 from pymongo import MongoClient
-from Futbolista import Futbolista
-from Futbolista import equipo
+from Futbolista import *
 
 # Creo una lista de objetos futbolista a insertar en la BD
 futbolistas = [
@@ -39,8 +38,9 @@ global collection,equipos
 collection = db.Futbolistas
 collection.drop()
 equipos = db.Equipos
+convocados= db.Convocados
 equipos.drop()
-
+convocados.drop()
 
 # PASO 4: CRUD (Create-Read-Update-Delete)
 
@@ -71,7 +71,7 @@ consulta=[{'$lookup':{
         {'$match':
          {'nombre':'river'}}]
 
-doc=equipos.aggregate(consulta)
+doc=equipos.aggregate(consulta)    
 print " jugadores de river"
 
 for f in doc:
@@ -81,7 +81,7 @@ for f in doc:
 
          a= fut['nombre'] +" "+ fut['apellidos']
          print a
-    
+
 
     
 
@@ -101,14 +101,26 @@ class Miformulario(QtGui.QDialog):
         self.ui.setupUi(self)
         QtCore.QObject.connect(self.ui.agregar_button, QtCore.SIGNAL('clicked()'), self.agregar)
         QtCore.QObject.connect(self.ui.mostrar_button, QtCore.SIGNAL('clicked()'), self.mostrar)
+        QtCore.QObject.connect(self.ui.eliminar_button, QtCore.SIGNAL('clicked()'), self.borrar)
+        
+    def actualizar_convocados(self):
+        global convocados
+        self.ui.list_convocados.clear()
 
-
+    #READ leemos todos los documentos de la coleccion convocados
+        cursor = convocados.find()
+        for fut in cursor:
+            self.ui.list_convocados.addItem(fut['nombre'])
+            
     def mostrar(self):
+        self.ui.list_equipos.clear()
         #text = self.ui.list_equipos.currentItem().text()  // agarra el text del item elejido de la lista
         global collection,equipos,consulta
 
         #cuando se elija un equipo del combo box, se hara la consulta con el nombre de ese equipo
         equipo_select=self.ui.Equipos_Cbox.currentText()
+
+        # READ : hacemos una consulta usamos el comando lookup para hacer un join entre los dos documentos ( equipo,jugador)
         consulta=[{'$lookup':{
             'from':'Futbolistas',
             'localField': '_id',
@@ -117,24 +129,39 @@ class Miformulario(QtGui.QDialog):
                 {'$match':
                  {'nombre':str(equipo_select)}}] 
         
-#Recorremos todo el json d
+        #Recorremos todo el json d
         doc=equipos.aggregate(consulta)
         for f in doc:
-             for fut in f["miembro"]:
-                  if(fut["convocado"] == False): # condicional que valida si el jugador fue convocado o 
-                      a= fut['nombre'] +" "+ fut['apellidos']+" - " + fut['tipo']+ " - edad " +str(fut['edad']) 
-                      self.ui.list_equipos.addItem(a)
+            for fut in f["miembro"]:
+                if(fut["convocado"] == False): # condicional que valida si el jugador fue convocado o 
+                    a= fut['nombre'] +" "+ fut['apellidos']+" - " + fut['tipo']+ " - edad " +str(fut['edad']) 
+                    self.ui.list_equipos.addItem(a)
                       
     def agregar(self):
-        global collection,equipos
+        global collection,equipos,convocados
         text = str(self.ui.list_equipos.currentItem().text())
-        posi= text.find(" - ")
+        posi= text.find(" ")
+        posi2= text.find(" - ")
         jugador=text[0:posi]
-        print jugador
+        
+        #UPDATE:  actualizamos el campo "convocado" a true 
+        collection.update({"nombre":jugador},{'$set':{"convocado" : True}})
+
+        jugador=text[0:posi2]
+        #INSERT :
+        convocados.insert(convocado(jugador).toDBCollection())
         self.ui.list_equipos.takeItem(self.ui.list_equipos.currentRow())
+        self.actualizar_convocados()
+
+    def borrar(self):
         
+        global convocados
+        text = str(self.ui.list_convocados.currentItem().text())
+        # el documento del convocado seleccionado se borrara de la coleccion convocados, cuando hagamos click en el boton borrar
+        convocados.remove({"nombre":text})
+        self.actualizar_convocados()
         
-        
+            
         
             
             

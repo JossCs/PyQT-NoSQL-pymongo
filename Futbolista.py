@@ -30,7 +30,6 @@ class Futbolista:
 class equipo:
 
     def __init__(self,_id,nombre):
-
         self._id=_id
         self.nombre = nombre
     def toDBCollection (self):
@@ -40,3 +39,13 @@ class equipo:
         }
         return Equipo
 
+
+class convocado:
+    def __init__(self,nombre):
+        self.nombre = nombre
+    def toDBCollection (self):
+        Convocado = {
+            "nombre":self.nombre,
+        }
+        return Convocado
+    
