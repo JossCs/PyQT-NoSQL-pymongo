@@ -19,8 +19,7 @@ futbolistas = [
     Futbolista('Leo','Baptistao',22,'Delantero',2)
     ]
 
-river= {'juan':'perez','jose':'aquino'}
-barcel= {'pedro':'rodrigz','carlos':'kaka'}
+
 Equipos =[
     equipo(1,'river'),
     equipo(2,'barcelona')
@@ -35,6 +34,8 @@ db = mongoClient.Futbol
 
 
 # PASO 3: Obtenemos una coleccion para trabajar con ella
+
+global collection,equipos
 collection = db.Futbolistas
 collection.drop()
 equipos = db.Equipos
@@ -44,6 +45,9 @@ equipos.drop()
 # PASO 4: CRUD (Create-Read-Update-Delete)
 
 # PASO 4.1: "CREATE" -> Metemos los objetos futbolista (o documentos en Mongo) en la coleccion Futbolista
+
+
+
 for futbolista in futbolistas:
     collection.insert(futbolista.toDBCollection())
 
@@ -59,9 +63,8 @@ for fut in cursor:
          %(fut['nombre'], fut['apellidos'], fut['edad'], fut['demarcacion'], fut['internacional'])
 
 
-
-
-mienbr=[{'$lookup':{
+global consulta
+consulta=[{'$lookup':{
     'from':'Futbolistas',
     'localField': '_id',
     'foreignField' : 'internacional',
@@ -69,7 +72,7 @@ mienbr=[{'$lookup':{
         {'$match':
          {'nombre':'river'}}]
 
-doc=equipos.aggregate(mienbr)
+doc=equipos.aggregate(consulta)
 print " jugadores de river"
 
 for f in doc:
@@ -77,15 +80,15 @@ for f in doc:
          print "%s - %s - %i - %s " \
          %(fut['nombre'], fut['apellidos'], fut['edad'], fut['demarcacion'])
 
-
-         
+         a= fut['nombre'] +" "+ fut['apellidos']
+         print a
     
 
     
 
 
-collection.drop()
-equipos.drop()
+#collection.drop()
+#equipos.drop()
 # PASO FINAL: Cerrar la conexion
 mongoClient.close()
 
@@ -106,6 +109,19 @@ class Miformulario(QtGui.QDialog):
         #self.ui.list_equipos.takeItem(self.ui.list_equipos.currentRow())
         self.ui.list_convocados.addItem(text)
         print text
+        global collection,equipos,consulta
+#se hace la consulta para 
+        doc=equipos.aggregate(consulta)
+        for f in doc:
+             for fut in f["miembro"]:
+                 print "%s - %s - %i - %s " \
+                 %(fut['nombre'], fut['apellidos'], fut['edad'], fut['demarcacion'])
+
+                 a= fut['nombre'] +" "+ fut['apellidos']
+                 self.ui.list_convocados.addItem(a)
+    
+            
+        
 
 
     
