@@ -39,7 +39,6 @@ class equipo:
         }
         return Equipo
 
-
 class convocado:
     def __init__(self,nombre):
         self.nombre = nombre

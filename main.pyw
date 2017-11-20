@@ -11,17 +11,27 @@ from Futbolista import *
 # Creo una lista de objetos futbolista a insertar en la BD
 futbolistas = [
     Futbolista('Iker','Casillas',33,'Portero',1,False),
+    Futbolista('Pedro','Gallese',29,'Delantero',4,False),
     Futbolista('Carles','Puyol',36,'Central',2,False),
     Futbolista('Sergio','Ramos',28,'Lateral',1,False),
-    Futbolista('Andres','Iniesta',30,'Centrocampista',1,False),
+    Futbolista('Andres','Iniesta',30,'Central',1,False),
     Futbolista('Fernando','Torres',30,'Delantero',2,False),
-    Futbolista('Leo','Baptistao',22,'Delantero',2,False)
+    Futbolista('Paolo','Guerrero',31,'Delantero',3,False),
+    Futbolista('Miguel','Trauco',25,'Defensa',3,False),
+    Futbolista('Aldo','Corzo',26,'Delantero',4,False),
+    Futbolista('Miguel','Araujo',25,'Defensa',5,False),
+    Futbolista('Pedro','Aquino',27,'Central',5,False),
+    Futbolista('Leo','Baptistao',22,'Delantero',2,False),
+    Futbolista('Renato','Tapia',30,'Central',5,False)
     ]
 
 
 Equipos =[
     equipo(1,'River'),
-    equipo(2,'Barcelona')
+    equipo(2,'Barcelona'),
+    equipo(3,'Flamengo'),
+    equipo(4,'Universitario'),
+    equipo(5,'Alianza Lima')
 
     ]
 # PASO 1: Conexión al Server de MongoDB Pasandole el host y el puerto
@@ -34,7 +44,7 @@ db = mongoClient.Futbol
 
 # PASO 3: Obtenemos una coleccion para trabajar con ella
 
-global collection,equipos
+
 collection = db.Futbolistas
 collection.drop()
 equipos = db.Equipos
@@ -44,8 +54,7 @@ convocados.drop()
 
 # PASO 4: CRUD (Create-Read-Update-Delete)
 
-# PASO 4.1: "CREATE" -> Metemos los objetos futbolista (o documentos en Mongo) en la coleccion Futbolista
-
+# PASO 4.1: "CREATE" -> Metemos los objetos futbolista y equipo (o documentos en Mongo) en la coleccion Futbolista
 
 
 for futbolista in futbolistas:
@@ -53,37 +62,6 @@ for futbolista in futbolistas:
 
 for equ in Equipos:
     equipos.insert(equ.toDBCollection())
-
-
-# PASO 4.2.1: "READ" -> Leemos todos los documentos de la base de datos
-cursor = collection.find()
-for fut in cursor:
-    print "%s - %s - %i - %s - %r" \
-         %(fut['nombre'], fut['apellidos'], fut['edad'], fut['tipo'], fut['equipo'])
-
-
-global consulta
-consulta=[{'$lookup':{
-    'from':'Futbolistas',
-    'localField': '_id',
-    'foreignField' : 'equipo',
-    'as': 'miembro'}},
-        {'$match':
-         {'nombre':'river'}}]
-
-doc=equipos.aggregate(consulta)    
-print " jugadores de river"
-
-for f in doc:
-    for fut in f["miembro"]:
-         print "%s - %s - %i - %s " \
-         %(fut['nombre'], fut['apellidos'], fut['edad'], fut['tipo'])
-
-         a= fut['nombre'] +" "+ fut['apellidos']
-         print a
-
-
-    
 
 
 #collection.drop()
@@ -102,6 +80,8 @@ class Miformulario(QtGui.QDialog):
         QtCore.QObject.connect(self.ui.agregar_button, QtCore.SIGNAL('clicked()'), self.agregar)
         QtCore.QObject.connect(self.ui.mostrar_button, QtCore.SIGNAL('clicked()'), self.mostrar)
         QtCore.QObject.connect(self.ui.eliminar_button, QtCore.SIGNAL('clicked()'), self.borrar)
+        QtCore.QObject.connect(self.ui.eliall_button, QtCore.SIGNAL('clicked()'), self.borrartodos)
+        QtCore.QObject.connect(self.ui.ingresar_button, QtCore.SIGNAL('clicked()'), self.ingresar_jugador)
         
     def actualizar_convocados(self):
         global convocados
@@ -155,19 +135,38 @@ class Miformulario(QtGui.QDialog):
 
     def borrar(self):
         
-        global convocados
+        global convocados,collection
         text = str(self.ui.list_convocados.currentItem().text())
-        # el documento del convocado seleccionado se borrara de la coleccion convocados, cuando hagamos click en el boton borrar
+        posi= text.find(" ")
+        jugador=text[0:posi]
+        #DELETE el documento del convocado seleccionado se borrara de la coleccion convocados, cuando hagamos click en el boton borrar
         convocados.remove({"nombre":text})
+        #UPDATE actualizamos el campo "convocado"  a False de la coleccion de jugadores
+        collection.update({"nombre":jugador},{'$set':{"convocado" : False}})
         self.actualizar_convocados()
         
+    def borrartodos(self):
+        global convocados
+        convocados.drop()
+        self.actualizar_convocados()      
             
+            
+    def ingresar_jugador(self):
+        global collection
+        nom = str(self.ui.nombre_text.text())
+        ape = str(self.ui.apellido_text.text())
+        edad= self.ui.edad_SB.value()
+        tipo = str(self.ui.Tipo_CB.currentText())
+        equi = str(self.ui.Equipos_CB.currentText())
+
+
         
-            
-            
-
-    
-
+        #nuevo= Futbolista(nom,ape,edad,tipo,False),
+        
+        self.ui.nombre_text.clear()
+        self.ui.apellido_text.clear()
+        edad= self.ui.edad_SB.setValue(20)
+        
         
 
 if __name__ == "__main__":
