@@ -45,10 +45,10 @@ db = mongoClient.Futbol
 # PASO 3: Obtenemos una coleccion para trabajar con ella
 
 
-collection = db.Futbolistas
-collection.drop()
+jugadores = db.Futbolistas
 equipos = db.Equipos
 convocados= db.Convocados
+jugadores.drop()
 equipos.drop()
 convocados.drop()
 
@@ -58,14 +58,11 @@ convocados.drop()
 
 
 for futbolista in futbolistas:
-    collection.insert(futbolista.toDBCollection())
+    jugadores.insert(futbolista.toDBCollection())
 
 for equ in Equipos:
     equipos.insert(equ.toDBCollection())
 
-
-#collection.drop()
-#equipos.drop()
 # PASO FINAL: Cerrar la conexion
 mongoClient.close()
 
@@ -87,15 +84,14 @@ class Miformulario(QtGui.QDialog):
         global convocados
         self.ui.list_convocados.clear()
 
-    #READ leemos todos los documentos de la coleccion convocados
+        #READ leemos todos los documentos de la coleccion convocados
         cursor = convocados.find()
         for fut in cursor:
             self.ui.list_convocados.addItem(fut['nombre'])
             
     def mostrar(self):
         self.ui.list_equipos.clear()
-        #text = self.ui.list_equipos.currentItem().text()  // agarra el text del item elejido de la lista
-        global collection,equipos,consulta
+        global jugadores,equipos,consulta
 
         #cuando se elija un equipo del combo box, se hara la consulta con el nombre de ese equipo
         equipo_select=self.ui.Equipos_Cbox.currentText()
@@ -109,40 +105,43 @@ class Miformulario(QtGui.QDialog):
                 {'$match':
                  {'nombre':str(equipo_select)}}] 
         
-        #Recorremos todo el json d
+        #Recorremos todo el json DOC,que contiene el resultado de $lookup
         doc=equipos.aggregate(consulta)
         for f in doc:
             for fut in f["miembro"]:
-                if(fut["convocado"] == False): # condicional que valida si el jugador fue convocado o 
+                # condicional que valida si un jugador es convodado o no,mientras no sea convocado se mostrara
+                if(fut["convocado"] == False):  
                     a= fut['nombre'] +" "+ fut['apellidos']+" - " + fut['tipo']+ " - edad " +str(fut['edad']) 
                     self.ui.list_equipos.addItem(a)
                       
     def agregar(self):
-        global collection,equipos,convocados
+        global jugadores,equipos,convocados
         text = str(self.ui.list_equipos.currentItem().text())
         posi= text.find(" ")
         posi2= text.find(" - ")
         jugador=text[0:posi]
         
         #UPDATE:  actualizamos el campo "convocado" a true 
-        collection.update({"nombre":jugador},{'$set':{"convocado" : True}})
+        jugadores.update({"nombre":jugador},{'$set':{"convocado" : True}})
 
         jugador=text[0:posi2]
-        #INSERT :
+        
+        #CREATE : insertamos el documento que contiene al jugador convocado en la colleccion convocados
         convocados.insert(convocado(jugador).toDBCollection())
         self.ui.list_equipos.takeItem(self.ui.list_equipos.currentRow())
         self.actualizar_convocados()
 
     def borrar(self):
         
-        global convocados,collection
+        global convocados,jugadores
         text = str(self.ui.list_convocados.currentItem().text())
         posi= text.find(" ")
         jugador=text[0:posi]
         #DELETE el documento del convocado seleccionado se borrara de la coleccion convocados, cuando hagamos click en el boton borrar
         convocados.remove({"nombre":text})
+        
         #UPDATE actualizamos el campo "convocado"  a False de la coleccion de jugadores
-        collection.update({"nombre":jugador},{'$set':{"convocado" : False}})
+        jugadores.update({"nombre":jugador},{'$set':{"convocado" : False}})
         self.actualizar_convocados()
         
     def borrartodos(self):
@@ -152,16 +151,19 @@ class Miformulario(QtGui.QDialog):
             
             
     def ingresar_jugador(self):
-        global collection
+        global jugadores
         nom = str(self.ui.nombre_text.text())
         ape = str(self.ui.apellido_text.text())
-        edad= self.ui.edad_SB.value()
+        edad = self.ui.edad_SB.value()
         tipo = str(self.ui.Tipo_CB.currentText())
-        equi = str(self.ui.Equipos_CB.currentText())
-
+        equi = self.ui.Equipos_CB.currentIndex()+1
 
         
-        #nuevo= Futbolista(nom,ape,edad,tipo,False),
+        nuevo= Futbolista(nom,ape,edad,tipo,equi,False)
+
+        #CREATE insertamos un nuevo documento (objeto futbolista) a la coleccion Futbolistas
+        jugadores.insert(nuevo.toDBCollection())
+        
         
         self.ui.nombre_text.clear()
         self.ui.apellido_text.clear()

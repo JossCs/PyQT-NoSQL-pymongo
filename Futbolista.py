@@ -9,7 +9,7 @@ class Futbolista:
         self.tipo = tipo
         self.equipo=equipo
         self.convocado=convocado
-
+    #no especifico un _id para jugador
     def toDBCollection (self):
         jugador = {
             "nombre":self.nombre,
